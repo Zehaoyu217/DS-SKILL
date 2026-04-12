@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ds-workspace leaderboard",
+  "type": "object",
+  "required": ["project","primary_metric","current_state","runs","disproven","events"],
+  "properties": {
+    "project": { "type": "string" },
+    "primary_metric": {
+      "type": "object",
+      "required": ["name","direction"],
+      "properties": {
+        "name": { "type": "string" },
+        "direction": { "enum": ["max","min"] }
+      }
+    },
+    "current_state": {
+      "type": "object",
+      "required": ["v","phase","updated_at"],
+      "properties": {
+        "v": { "type": "integer" },
+        "phase": { "type": "string" },
+        "updated_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "runs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id","v","created_at","model","params_summary","features_used",
+                     "cv_mean","cv_std","cv_ci95","lift_vs_baseline","status",
+                     "seed","data_sha256","env_lock_hash"],
+        "properties": {
+          "id": { "type": "string" },
+          "v": { "type": "integer" },
+          "created_at": { "type": "string", "format": "date-time" },
+          "model": { "type": "string" },
+          "params_summary": { "type": "string" },
+          "features_used": { "type": "integer", "minimum": 0 },
+          "feature_groups": { "type": "array", "items": { "type": "string" } },
+          "cv_mean": { "type": "number" },
+          "cv_std": { "type": "number", "minimum": 0 },
+          "cv_ci95": {
+            "type": "array", "minItems": 2, "maxItems": 2,
+            "items": { "type": "number" }
+          },
+          "lift_vs_baseline": { "type": "number" },
+          "status": { "enum": ["valid","superseded","invalidated"] },
+          "invalidation_reason": { "type": ["string","null"] },
+          "notes_ref": { "type": "string" },
+          "baseline": { "type": "boolean" },
+          "seed": { "type": "integer" },
+          "data_sha256": { "type": "string" },
+          "env_lock_hash": { "type": "string" }
+        }
+      }
+    },
+    "disproven": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id","claim","lesson","date"],
+        "properties": {
+          "id": { "type": "string" },
+          "claim": { "type": "string" },
+          "lesson": { "type": "string" },
+          "date": { "type": "string", "format": "date-time" }
+        }
+      }
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["type","v","ref","at"],
+        "properties": {
+          "type": { "type": "string" },
+          "v": { "type": "integer" },
+          "ref": { "type": "string" },
+          "at": { "type": "string", "format": "date-time" }
+        }
+      }
+    }
+  }
+}

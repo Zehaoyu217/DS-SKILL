@@ -1,0 +1,7 @@
+{
+  "current_v": 1, "phase": "FRAME", "seed": 42,
+  "data_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+  "env_lock_hash": "h1", "holdout_locked_at": "2026-04-12T00:00:00Z",
+  "holdout_reads": 0, "active_hypotheses": ["H-v1-01"],
+  "open_blockers": [], "events_history": []
+}

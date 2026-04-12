@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ds-workspace state",
+  "type": "object",
+  "required": ["current_v", "phase", "seed", "data_sha256", "env_lock_hash",
+               "holdout_locked_at", "holdout_reads", "active_hypotheses",
+               "open_blockers", "events_history"],
+  "properties": {
+    "current_v": { "type": "integer", "minimum": 1 },
+    "phase": { "enum": ["FRAME","AUDIT","EDA","FEATURE_MODEL","VALIDATE","FINDINGS","SHIP","ABORTED"] },
+    "seed": { "type": "integer" },
+    "data_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "env_lock_hash": { "type": "string" },
+    "holdout_locked_at": { "type": "string", "format": "date-time" },
+    "holdout_reads": { "type": "integer", "minimum": 0 },
+    "active_hypotheses": { "type": "array", "items": { "type": "string" } },
+    "open_blockers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["from","severity","ref"],
+        "properties": {
+          "from": { "type": "string" },
+          "severity": { "enum": ["CRITICAL","HIGH","MEDIUM","LOW"] },
+          "ref": { "type": "string" }
+        }
+      }
+    },
+    "events_history": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["v","event","ref","at"],
+        "properties": {
+          "v": { "type": "integer" },
+          "event": { "enum": ["leakage-found","assumption-disproven","metric-plateau","cv-holdout-drift","novel-modeling-flag"] },
+          "ref": { "type": "string" },
+          "at": { "type": "string", "format": "date-time" }
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}
