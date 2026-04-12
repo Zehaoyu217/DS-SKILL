@@ -1,0 +1,23 @@
+{
+  "project": "demo",
+  "primary_metric": { "name": "PR-AUC", "direction": "max" },
+  "current_state": { "v": 2, "phase": "FEATURE_MODEL", "updated_at": "2026-04-12T00:00:00Z" },
+  "runs": [
+    { "id": "v1-r01","v":1,"created_at":"2026-04-11T00:00:00Z",
+      "model":"logreg","params_summary":"C=1","features_used":10,
+      "feature_groups":["rfm"],"cv_mean":0.60,"cv_std":0.02,"cv_ci95":[0.58,0.62],
+      "lift_vs_baseline":0.00,"status":"valid","baseline":true,
+      "seed":42,"data_sha256":"ab","env_lock_hash":"h1","notes_ref":"plans/v1.md#H-v1-01"},
+    { "id": "v2-r04","v":2,"created_at":"2026-04-12T00:00:00Z",
+      "model":"lightgbm","params_summary":"300t,lr=0.05","features_used":42,
+      "feature_groups":["rfm","tenure"],"cv_mean":0.71,"cv_std":0.011,"cv_ci95":[0.699,0.725],
+      "lift_vs_baseline":0.11,"status":"valid",
+      "seed":42,"data_sha256":"ab","env_lock_hash":"h1","notes_ref":"plans/v2.md#H-v2-03"}
+  ],
+  "disproven": [
+    { "id":"v1-d001","claim":"RFM alone is enough","lesson":"RFM without tenure loses edge customers","date":"2026-04-11T00:00:00Z"}
+  ],
+  "events": [
+    { "type":"leakage-found","v":1,"ref":"audits/v1-leakage.md","at":"2026-04-11T12:00:00Z"}
+  ]
+}
