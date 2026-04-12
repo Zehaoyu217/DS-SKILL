@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+tests/dashboard/node_modules/
+tests/dashboard/coverage/
