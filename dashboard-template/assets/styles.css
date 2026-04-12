@@ -1,0 +1,81 @@
+:root {
+  --c-bg: oklch(14% 0.01 260);
+  --c-surface: oklch(20% 0.015 260);
+  --c-surface-2: oklch(24% 0.02 260);
+  --c-text: oklch(96% 0 0);
+  --c-muted: oklch(70% 0.02 260);
+  --c-accent: oklch(78% 0.14 200);
+  --c-good: oklch(78% 0.18 150);
+  --c-warn: oklch(82% 0.16 80);
+  --c-bad:  oklch(70% 0.20 25);
+
+  --f-display: "Fraunces", "Georgia", serif;
+  --f-body: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: ui-monospace, "JetBrains Mono", Menlo, monospace;
+
+  --t-eyebrow: clamp(0.75rem, 0.6rem + 0.3vw, 0.9rem);
+  --t-h1: clamp(2.5rem, 1.2rem + 5vw, 5.5rem);
+  --t-h2: clamp(1.1rem, 0.9rem + 0.6vw, 1.4rem);
+
+  --s-1: 0.5rem; --s-2: 1rem; --s-3: 1.75rem; --s-4: 3rem;
+  --dur: 240ms;
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+* { box-sizing: border-box; }
+html,body { margin: 0; background: var(--c-bg); color: var(--c-text); font-family: var(--f-body); }
+h1,h2 { font-family: var(--f-display); font-weight: 500; letter-spacing: -0.02em; }
+
+.hero {
+  padding: var(--s-4) var(--s-3) var(--s-3);
+  border-bottom: 1px solid color-mix(in oklch, var(--c-surface), white 6%);
+}
+.eyebrow { color: var(--c-muted); text-transform: uppercase; letter-spacing: 0.2em;
+  font-size: var(--t-eyebrow); margin: 0 0 var(--s-2); }
+.metric { font-size: var(--t-h1); margin: 0; line-height: 0.95; display: grid;
+  grid-template-columns: auto 1fr auto; gap: var(--s-2); align-items: baseline; }
+.metric .value { font-family: var(--f-mono); color: var(--c-accent); }
+.metric .ci { font-family: var(--f-mono); color: var(--c-muted); font-size: 0.35em; }
+.meta { color: var(--c-muted); margin-top: var(--s-2); font-family: var(--f-mono); }
+
+main {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: var(--s-3);
+  padding: var(--s-3);
+}
+.timeline  { grid-column: 1 / -1; }
+.chart-wrap{ grid-column: 1 / span 8; background: var(--c-surface); border-radius: 18px; padding: var(--s-3); }
+.board     { grid-column: 9 / -1; background: var(--c-surface); border-radius: 18px; padding: var(--s-3); overflow-x: auto; }
+.wall      { grid-column: 1 / span 7; }
+.audit     { grid-column: 8 / -1; }
+
+@media (max-width: 1100px) {
+  .chart-wrap, .board, .wall, .audit { grid-column: 1 / -1; }
+}
+
+table#leaderboard { width: 100%; border-collapse: collapse; font-family: var(--f-mono); font-size: 0.85rem; }
+#leaderboard th { color: var(--c-muted); text-align: left; font-weight: 500; padding: var(--s-1) var(--s-2); position: sticky; top: 0; }
+#leaderboard td { padding: var(--s-1) var(--s-2); border-top: 1px solid color-mix(in oklch, var(--c-surface), white 4%); }
+#leaderboard tr.status-invalidated td { color: var(--c-bad); text-decoration: line-through; }
+#leaderboard tr.status-superseded  td { color: var(--c-muted); }
+#leaderboard tr.status-valid td strong { color: var(--c-accent); }
+
+.strip { list-style: none; display: flex; gap: var(--s-1); padding: 0; flex-wrap: wrap; }
+.strip li { padding: var(--s-1) var(--s-2); border-radius: 999px; background: var(--c-surface-2); font-family: var(--f-mono); font-size: 0.85rem; }
+
+.cards { list-style: none; padding: 0; display: grid; gap: var(--s-2); grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.cards li { background: var(--c-surface); border-radius: 14px; padding: var(--s-2) var(--s-3); border-left: 3px solid var(--c-warn); transition: transform var(--dur) var(--ease); }
+.cards li:hover { transform: translateY(-2px); }
+.cards h3 { margin: 0 0 var(--s-1); font-size: 1rem; }
+.cards p { margin: 0; color: var(--c-muted); font-size: 0.9rem; }
+
+.audit ul { list-style: none; padding: 0; display: grid; gap: var(--s-1); }
+.audit li { background: var(--c-surface); border-radius: 10px; padding: var(--s-1) var(--s-2); display: flex; gap: var(--s-2); align-items: center; }
+.audit .chip { padding: 2px 8px; border-radius: 999px; font-size: 0.7rem; font-family: var(--f-mono); }
+.audit .chip.critical { background: color-mix(in oklch, var(--c-bad) 35%, transparent); color: var(--c-bad); }
+.audit .chip.pass     { background: color-mix(in oklch, var(--c-good) 35%, transparent); color: var(--c-good); }
+
+@media (prefers-reduced-motion: reduce) {
+  .cards li { transition: none; }
+}

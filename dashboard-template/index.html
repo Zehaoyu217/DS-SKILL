@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DS Leaderboard</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+  <link rel="stylesheet" href="assets/vendor/uPlot.min.css" />
+</head>
+<body data-theme="dark">
+  <header class="hero">
+    <p class="eyebrow" id="project-name">…</p>
+    <h1 class="metric">
+      <span class="model" id="winner-model">—</span>
+      <span class="value" id="winner-value">—</span>
+      <span class="ci" id="winner-ci">—</span>
+    </h1>
+    <p class="meta" id="winner-meta">—</p>
+  </header>
+
+  <main>
+    <section aria-labelledby="timeline-h" class="timeline">
+      <h2 id="timeline-h">Versions</h2>
+      <ol id="version-strip" class="strip"></ol>
+    </section>
+
+    <section aria-labelledby="chart-h" class="chart-wrap">
+      <h2 id="chart-h">Metric over time</h2>
+      <div id="metric-chart"></div>
+    </section>
+
+    <section aria-labelledby="board-h" class="board">
+      <h2 id="board-h">Leaderboard</h2>
+      <table id="leaderboard">
+        <thead><tr>
+          <th>Run</th><th>v</th><th>Model</th><th>Metric</th><th>CI</th>
+          <th>Lift vs BL</th><th>#feat</th><th>Date</th><th>Status</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <section aria-labelledby="wall-h" class="wall">
+      <h2 id="wall-h">Museum of Wrong Ideas</h2>
+      <ul id="disproven-wall" class="cards"></ul>
+    </section>
+
+    <section aria-labelledby="audit-h" class="audit">
+      <h2 id="audit-h">Audits</h2>
+      <ul id="audit-strip"></ul>
+    </section>
+  </main>
+
+  <script src="assets/vendor/uPlot.min.js"></script>
+  <script type="module" src="assets/charts.js"></script>
+  <script type="module" src="assets/app.js"></script>
+</body>
+</html>
