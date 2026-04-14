@@ -2,12 +2,21 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "ds-workspace state",
   "type": "object",
-  "required": ["current_v", "phase", "seed", "data_sha256", "env_lock_hash",
+  "required": ["current_v", "phase", "mode", "seed", "data_sha256", "env_lock_hash",
                "holdout_locked_at", "holdout_reads", "active_hypotheses",
                "open_blockers", "events_history"],
   "properties": {
     "current_v": { "type": "integer", "minimum": 1 },
-    "phase": { "enum": ["FRAME","AUDIT","EDA","FEATURE_MODEL","VALIDATE","FINDINGS","SHIP","ABORTED"] },
+    "phase": { "enum": ["FRAME","DGP","AUDIT","DATA_PREP","EDA","FEATURE_MODEL","VALIDATE","FINDINGS","MERGE","SHIP","ABORTED"] },
+    "mode": { "enum": ["competition", "daily"], "description": "Chosen at FRAME (question 1e). Controls gate strictness." },
+    "tracker": { "enum": ["mlflow", "wandb", null], "default": null, "description": "External experiment tracker integration." },
+    "tracker_config": {
+      "type": "object",
+      "properties": {
+        "project": { "type": "string" },
+        "experiment": { "type": "string" }
+      }
+    },
     "seed": { "type": "integer" },
     "data_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
     "env_lock_hash": { "type": "string" },
@@ -33,11 +42,28 @@
         "required": ["v","event","ref","at"],
         "properties": {
           "v": { "type": "integer" },
-          "event": { "enum": ["leakage-found","assumption-disproven","metric-plateau","cv-holdout-drift","novel-modeling-flag"] },
+          "event": { "enum": ["leakage-found","assumption-disproven","metric-plateau","cv-holdout-drift","covariate-shift","suspicious-lift","submission-drift","novel-modeling-flag","novel-feature-flag"] },
           "ref": { "type": "string" },
           "at": { "type": "string", "format": "date-time" }
         }
       }
+    },
+    "user_guidance_file": {
+      "type": "string",
+      "default": "USER_GUIDANCE.md",
+      "description": "Path to the user guidance anchor file, relative to ds-workspace/."
+    },
+    "active_overrides": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": [],
+      "description": "Active permanent-scope override ids (override-vN-NNN) for reference."
+    },
+    "verbosity": {
+      "type": "string",
+      "enum": ["quiet", "normal", "verbose"],
+      "default": "normal",
+      "description": "Decision narration verbosity. Set via 'verbosity <level>' command."
     }
   },
   "additionalProperties": false
