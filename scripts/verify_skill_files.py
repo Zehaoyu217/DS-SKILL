@@ -73,6 +73,7 @@ REQUIRED = [
     "ds-patterns/model-selection.md",
     "ds-patterns/ensemble.md",
     "ds-patterns/ml-classification.md",
+    "ds-patterns/idea-research.md",
 ]
 
 FRONTMATTER = re.compile(r"^---\n(.*?)\n---", re.DOTALL)

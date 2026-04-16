@@ -103,6 +103,7 @@ by the ensemble).
 | [model-selection.md](ds-patterns/model-selection.md) | Overfit delta elevated, choosing between model families, or considering class weighting |
 | [ensemble.md](ds-patterns/ensemble.md) | Single-model ceiling reached, want to blend, or blend OOF has plateaued |
 | [ml-classification.md](ds-patterns/ml-classification.md) | Binary/multi-class target, imbalanced classes, or segment-level performance differs |
+| [idea-research.md](ds-patterns/idea-research.md) | Stuck and don't know what to try next, want prior work, or need to generate hypotheses from scratch |
 
 ---
 
