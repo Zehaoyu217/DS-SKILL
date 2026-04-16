@@ -32,6 +32,10 @@ value. Each model family has its own optimal depth: CatBoost may be optimal at
 depth=5 where LightGBM is optimal at num_leaves=11 — don't assume configurations
 transfer between families. Shallow trees tend to reward smooth data-generating
 processes; if your DGP is complex and jagged, very shallow may not be optimal.
+Single-seed regularization results are preliminary — a configuration that
+improves OOF on one seed may reverse on another, especially for small gains
+(<+0.002). Confirm with ≥2 seeds before treating a depth or regularization
+setting as optimal.
 
 ---
 

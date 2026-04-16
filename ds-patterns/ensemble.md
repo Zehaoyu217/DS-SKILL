@@ -29,7 +29,9 @@ over the best single model — considerably more than same-family hyperparameter
 tuning. Spending 20 runs tuning CatBoost seeds before trying a single XGBoost
 is a common mistake. Same-family variants produce highly correlated errors; the
 blend gain from them is close to zero until a genuinely different architecture
-is introduced.
+is introduced. Blend OOF gains should be confirmed across ≥2 seeds before
+concluding that a model adds meaningful diversity — single-seed blend results
+can be noise, especially for gains below +0.002.
 
 ---
 

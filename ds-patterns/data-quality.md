@@ -100,3 +100,31 @@ tree model families — they add no signal and occupy feature space. The 5%
 threshold is a rough lower bound, not a guarantee of signal. Always validate
 new flags with permutation importance after adding them; prune any with
 negative importance immediately.
+
+---
+
+## Suspicious Lift Check
+
+**Worth exploring when:** A single change produces a surprisingly large OOF
+gain (>+0.005), or a new join/merge was introduced alongside a feature change,
+or a result feels too good relative to the effort involved.
+
+**What to try:** Before treating the gain as real, run three checks: (1) did
+the change touch the validation fold in any way — new column derived from a
+join that includes validation rows, or a TE step that leaked target info?
+(2) does the gain hold consistently across ≥3 seeds? (3) did the overfit delta
+widen (in-sample gain larger than OOF gain), suggesting the model is memorising
+rather than generalising? If any check fails, investigate before promoting the
+result.
+
+**Ceiling signal:** All three checks pass on ≥2 seeds; overfit delta did not
+widen; adversarial validation AUC on the new feature set is not elevated; the
+gain is consistent in direction across model families.
+
+**Watch out for:** Large single-step gains are the most common precursor to
+leakage discoveries. The validation fold is contaminated more often than
+expected — through target encoding applied before fold splitting, through join
+keys that are proxies for the target, or through feature transformations that
+inadvertently use future information. A gain that vanishes on a different seed
+is noise, not signal. A gain that only shows up with one model family but not
+others is also worth investigating before committing.

@@ -42,11 +42,23 @@ not been audited yet, start there — it almost always has the most leverage
 early. If you are well past the baseline, look at ensemble and model-selection
 patterns. Pull up the relevant sub-skill from the pattern map below.
 
+If 2–3 variations within the chosen area are genuinely independent (e.g.,
+different model families, different encoders, parallel feature branches), run
+them simultaneously rather than sequentially — no need to wait for one result
+before starting another.
+
 ### 3. Explore
 
 Try variations. Stay curious. Document outcomes.
 - Run 2–3 variations on the pattern you chose
 - Record what you tried and the metric delta
+- After each variation, make an explicit **keep/revert decision**: if metric
+  improved, commit it; if not, revert before starting the next. Don't
+  accumulate uncommitted experiments across variations.
+- If a gain is surprisingly large (>+0.005 from a single change), treat it as
+  a leakage suspect before celebrating — verify it holds across ≥2 seeds and
+  that no validation data was touched. See the **Suspicious Lift Check**
+  pattern in `ds-patterns/data-quality.md`.
 - Let the pattern's **Ceiling signal** tell you when to stop, not intuition
 
 ### 4. Ceiling
@@ -56,12 +68,19 @@ You have likely hit the ceiling for a pattern area when:
 - Permutation importance of new features is near zero
 - The pattern's own ceiling signal says so
 
-Do not force more variations once the ceiling is clear.
+Do not force more variations once the ceiling is clear. When you stop, write
+one sentence explaining why: **(a) approach-exhausted** — this technique is
+tapped, try another pattern area; **(b) feature-limited** — the signal may not
+exist in the current features; or **(c) intrinsic** — the DGP may not support
+better performance here. This note guides the next loop iteration.
 
 ### 5. Harvest
 
 Before moving on:
 - Note what worked and what was disproven
+- **Single-seed results are preliminary** — before updating a pattern's
+  **Watch out for** section, confirm the finding holds on ≥2 seeds. Tag
+  unconfirmed findings explicitly so they are not mistaken for proven lessons.
 - Run `/claudeception` to update the **Watch out for** section of the relevant
   pattern file in `ds-patterns/`
 - Commit findings and lesson updates
