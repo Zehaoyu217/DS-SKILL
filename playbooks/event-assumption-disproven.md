@@ -17,3 +17,6 @@ Statistician or Skeptic presents concrete falsification of an assumption declare
 
 ## Resolution criteria
 Disproven card exists AND `data-contract.md` updated AND v(N+1) plan cites the disproven-card AND Skeptic re-signs the FRAME gate for v(N+1).
+
+## Resume phase
+Current vN is closed as incomplete. Orchestrator sets `state.current_v = N+1`, `state.current_phase = FRAME`, and re-enters `playbooks/phase-frame.md` starting from the corrected data-contract.

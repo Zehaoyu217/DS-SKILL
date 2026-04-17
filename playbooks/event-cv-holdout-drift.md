@@ -18,3 +18,6 @@ At ship gate, holdout metric falls outside the predicted interval `cv_mean ± k 
 
 ## Resolution criteria
 Drift source identified AND either remediated in v(N+1) (new ship attempt) OR documented as an accepted limitation with Skeptic + Statistician sign-off in `audits/v(N+1)-skeptic.md`.
+
+## Resume phase
+Current vN is closed as incomplete (ship attempt invalidated, not shipped). Orchestrator sets `state.current_v = N+1`, `state.current_phase = FRAME`, and re-enters `playbooks/phase-frame.md` with a drift-investigation hypothesis pre-filled.

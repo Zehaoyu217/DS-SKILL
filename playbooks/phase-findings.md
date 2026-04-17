@@ -18,7 +18,12 @@ Resolve every hypothesis from the plan. Each hypothesis receives a determination
 - **Statistician** (parallel, promotion votes): Vote on disproven-card promotion to ds-learnings.
 
 ## Exit gate
-Every hypothesis id from `plans/vN.md` resolved to exactly one artifact (`findings/vN-fNNN.md` or `disproven/vN-dNNN.md`). Skeptic Verdict=PASS in `audits/vN-findings-review.md`.
+All of the following must hold (ALL AND):
+- Every hypothesis id from `plans/vN.md` resolved to exactly one artifact (`findings/vN-fNNN.md` or `disproven/vN-dNNN.md`)
+- Skeptic Verdict=PASS in `audits/vN-findings-review.md`
+- **Consistency lint GREEN** — `python $SKILL/scripts/consistency_lint.py ds-workspace` exits 0. Any errors block the gate (Iron Law #17).
+- Promoted findings/disproven appended to `ds-workspace/lessons.md`
+- Closing `step-journal/vN.md` entry added summarizing the iteration's verdict
 
 ## Events that can abort this phase
 - `assumption-disproven` (finding disproves a core framing assumption; update data-contract and open v(N+1))

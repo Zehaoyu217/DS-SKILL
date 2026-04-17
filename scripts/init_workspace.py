@@ -3,7 +3,8 @@
 
 Creates the directory tree defined by workspace-layout.md, copies dashboard-template/,
 seeds lessons.md / step-journal / sandbox notebook from templates/, writes initial
-state.json + leaderboard.json, and (optionally) starts the dashboard server.
+state.json + leaderboard.json + budget.json + coverage.json, and (optionally) starts
+the dashboard server.
 
 Idempotent: existing files are never overwritten; missing ones are filled in.
 
@@ -32,6 +33,7 @@ SUBDIRS = [
     "disproven",
     "literature",
     "audits",
+    "audits/meta",
     "runs",
     "nb",
     "src/data",
@@ -55,7 +57,16 @@ SEED_COPIES = [
     ("templates/sandbox-vN.ipynb",          "nb/v1_sandbox.ipynb"),
     ("templates/learnings-vN.md",           "runs/v1/learnings.md"),
     ("templates/user-guidance.md",          "USER_GUIDANCE.md"),
+    ("templates/research-program.md",       "research-program.md"),
 ]
+
+# Placeholder sha256 used until DGP/AUDIT exit locks real values. Schema requires a 64-char
+# hex string; zero-string is unambiguously recognizable as "not yet locked".
+PLACEHOLDER_SHA256 = "0" * 64
+PLACEHOLDER_ENV_HASH = "pre-audit-init"
+# ISO-8601 date-time well before any real project. Schema requires format:date-time; this
+# placeholder is replaced when holdout is locked in FRAME step 5.
+PLACEHOLDER_HOLDOUT_LOCKED_AT = "1970-01-01T00:00:00Z"
 
 
 def now_iso() -> str:
@@ -78,6 +89,55 @@ def copy_if_missing(src: Path, dst: Path) -> bool:
     return True
 
 
+def default_coverage_seed() -> dict:
+    """Seed a coverage.json aligned with the six ds-patterns/*.md sub-skills.
+
+    All areas start unexplored (approaches_tried=[], last_tried_vN=0) so Iron Law #25's
+    novelty gate fires on first attempt. FRAME step will set priority fields based on
+    data-contract + DGP.
+    """
+    areas = [
+        "data-quality",
+        "feature-engineering",
+        "model-selection",
+        "ensemble",
+        "ml-classification",
+        "idea-research",
+    ]
+    return {
+        "project": "<set-by-frame>",
+        "updated_at": now_iso(),
+        "pattern_areas": [
+            {
+                "name": name,
+                "approaches_tried": [],
+                "last_tried_vN": 0,
+                "exhausted": False,
+                "remaining_leverage_estimate": 0.5,
+                "priority": "medium",
+                "notes_ref": None,
+            }
+            for name in areas
+        ],
+    }
+
+
+def default_budget_seed() -> dict:
+    """Seed a budget.json with null envelopes. FRAME step overwrites with declared caps."""
+    return {
+        "declared_at": now_iso(),
+        "envelopes": {
+            "compute_hours": None,
+            "wall_clock_days": None,
+            "api_cost_usd": None,
+            "max_versions": None,
+            "max_runs_per_version": None,
+        },
+        "ledger": [],
+        "overrides_applied": [],
+    }
+
+
 def init(project_root: Path, start_server: bool, force: bool) -> int:
     ws = project_root / "ds-workspace"
     if ws.exists() and not force and (ws / "state.json").exists():
@@ -91,15 +151,29 @@ def init(project_root: Path, start_server: bool, force: bool) -> int:
         if copy_if_missing(SKILL_ROOT / rel_src, ws / rel_dst):
             created.append(rel_dst)
 
+    # state.json — conforms to templates/state.schema.json. Placeholder values for fields
+    # that are locked later in the lifecycle (seed, data_sha256, env_lock_hash,
+    # holdout_locked_at, mode). These are replaced by FRAME step (mode at q1e, holdout at
+    # step 5) and AUDIT step (data_sha256, env_lock_hash, seed).
     state = {
-        "project": project_root.name,
-        "initialized_at": now_iso(),
-        "current_version": 1,
-        "current_phase": "FRAME",
+        "current_v": 1,
+        "phase": "FRAME",
+        "mode": "daily",  # FRAME q1e overwrites with 'competition' | 'daily'
+        "seed": 0,
+        "data_sha256": PLACEHOLDER_SHA256,
+        "env_lock_hash": PLACEHOLDER_ENV_HASH,
+        "holdout_locked_at": PLACEHOLDER_HOLDOUT_LOCKED_AT,
         "holdout_reads": 0,
-        "competition_mode": None,
-        "submitted": False,
-        "skill_version": "v3",
+        "active_hypotheses": [],
+        "open_blockers": [],
+        "events_history": [],
+        "user_guidance_file": "USER_GUIDANCE.md",
+        "active_overrides": [],
+        "verbosity": "normal",
+        "autonomous": False,
+        "last_meta_audit_v": None,
+        "plateau_streak": 0,
+        "pattern_area_plateaus": {},
     }
     if write_if_missing(ws / "state.json", json.dumps(state, indent=2) + "\n"):
         created.append("state.json")
@@ -107,7 +181,7 @@ def init(project_root: Path, start_server: bool, force: bool) -> int:
     leaderboard = {
         "project": project_root.name,
         "primary_metric": {"name": "TBD", "direction": "max"},
-        "current_state": {"v": 1, "phase": "FRAME"},
+        "current_state": {"v": 1, "phase": "FRAME", "updated_at": now_iso()},
         "runs": [],
         "disproven": [],
         "events": [],
@@ -115,14 +189,35 @@ def init(project_root: Path, start_server: bool, force: bool) -> int:
     if write_if_missing(ws / "dashboard/data/leaderboard.json", json.dumps(leaderboard, indent=2) + "\n"):
         created.append("dashboard/data/leaderboard.json")
 
+    # Iron Law #21 — budget.json seeded with null envelopes. FRAME step overwrites with
+    # declared caps. Placement at workspace root, not dashboard, so budget_check.py can
+    # decrement it cheaply.
+    if write_if_missing(ws / "budget.json", json.dumps(default_budget_seed(), indent=2) + "\n"):
+        created.append("budget.json")
+
+    # Iron Law #25 — coverage.json seeded with the six ds-patterns areas. VALIDATE exit
+    # updates approaches_tried; auto-pivot consults this at plateau.
+    coverage = default_coverage_seed()
+    coverage["project"] = project_root.name
+    if write_if_missing(ws / "coverage.json", json.dumps(coverage, indent=2) + "\n"):
+        created.append("coverage.json")
+
     # HOLDOUT_LOCK placeholder — real lock is written when holdout is split
     if write_if_missing(ws / "holdout/HOLDOUT_LOCK.txt",
                         "DO NOT READ. Lock will be finalized when holdout is split at DGP exit.\n"):
         created.append("holdout/HOLDOUT_LOCK.txt")
 
     # Initial data-contract stub
-    if write_if_missing(ws / "data-contract.md",
-                        "# Data Contract\n\nFill in during FRAME phase — columns, types, labels, time window, expected rows.\n"):
+    data_contract_content = (
+        "# Data Contract\n\n"
+        "Fill in during FRAME phase — columns, types, labels, time window, expected rows.\n\n"
+        "## Eval harness lock\n"
+        "<!-- Written by scripts/hash_eval_harness.py at AUDIT exit. Do not edit manually. -->\n"
+        "eval_harness_sha256: (not yet locked)\n"
+        "locked_at: (not yet locked)\n"
+        "locked_files: []\n"
+    )
+    if write_if_missing(ws / "data-contract.md", data_contract_content):
         created.append("data-contract.md")
 
     print(f"# ds-workspace initialized at {ws}")

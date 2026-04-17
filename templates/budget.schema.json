@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ds-workspace budget envelope",
+  "description": "Declared at FRAME exit (Iron Law #21). Decremented per run by scripts/budget_check.py. Orchestrator refuses further runs once any dimension hits zero without an Iron Law #24 override.",
+  "type": "object",
+  "required": ["declared_at", "envelopes", "ledger"],
+  "properties": {
+    "declared_at": { "type": "string", "format": "date-time" },
+    "envelopes": {
+      "type": "object",
+      "description": "Initial budget caps. Any dimension set to null is considered unlimited (not recommended in autonomous mode).",
+      "properties": {
+        "compute_hours": { "type": ["number", "null"], "minimum": 0 },
+        "wall_clock_days": { "type": ["number", "null"], "minimum": 0 },
+        "api_cost_usd": { "type": ["number", "null"], "minimum": 0 },
+        "max_versions": { "type": ["integer", "null"], "minimum": 1 },
+        "max_runs_per_version": { "type": ["integer", "null"], "minimum": 1 }
+      }
+    },
+    "ledger": {
+      "type": "array",
+      "description": "Append-only log of spend. Every run appends one entry.",
+      "items": {
+        "type": "object",
+        "required": ["run_id", "vN", "at", "spend"],
+        "properties": {
+          "run_id": { "type": "string" },
+          "vN": { "type": "integer" },
+          "at": { "type": "string", "format": "date-time" },
+          "spend": {
+            "type": "object",
+            "properties": {
+              "compute_hours": { "type": "number", "minimum": 0 },
+              "api_cost_usd": { "type": "number", "minimum": 0 }
+            }
+          }
+        }
+      }
+    },
+    "overrides_applied": {
+      "type": "array",
+      "description": "Ids of active override-cards that relaxed this envelope (Iron Law #24).",
+      "items": { "type": "string" },
+      "default": []
+    }
+  },
+  "additionalProperties": false
+}

@@ -9,7 +9,17 @@
       "cv_mean": 0.72, "cv_std": 0.02, "cv_ci95": [0.68, 0.76],
       "lift_vs_baseline": 0.0, "status": "valid",
       "seed": 42, "data_sha256": "abc", "env_lock_hash": "h1",
-      "baseline": true
+      "baseline": true,
+      "feature_baseline": false,
+      "default_params": false,
+      "tuning_run": false,
+      "feature_lift_vs_feature_baseline": null,
+      "tuning_lift_vs_default": null,
+      "secondary_metrics": {"calibration_ece": 0.08, "worst_segment_score": 0.61},
+      "budget_spent": {"compute_hours": 0.1, "api_cost_usd": 0.0},
+      "pattern_area": "data-quality",
+      "approach_id": "dq-baseline",
+      "override_ids": []
     }
   ],
   "disproven": [],

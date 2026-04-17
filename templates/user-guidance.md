@@ -4,6 +4,9 @@
 > Read it BEFORE consulting lessons.md, iron-laws, or prior findings.
 > The most recent entry reflects the user's current intent.
 > Earlier entries provide context but do NOT override newer ones.
+>
+> **Scope:** Operational settings only — verbosity, active overrides, G-NNN guidance entries.
+> For research direction (hypotheses, feature/model candidates to try), see `research-program.md`.
 
 ## Current focus (auto-updated by orchestrator)
 

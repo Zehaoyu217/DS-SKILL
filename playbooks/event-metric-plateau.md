@@ -14,3 +14,6 @@ Two consecutive vN complete FINDINGS with no statistically significant CV improv
 
 ## Resolution criteria
 Full Literature memo committed AND v(N+1) opens with at least one hypothesis sourced from the memo OR user invokes `ship`/`abort`.
+
+## Resume phase
+Orchestrator sets `state.current_v = N+1`, `state.current_phase = FRAME`, and re-enters `playbooks/phase-frame.md`. Literature Scout memo is a **prerequisite for FEATURE_MODEL entry** in v(N+1) — the FRAME gate may not close without it.

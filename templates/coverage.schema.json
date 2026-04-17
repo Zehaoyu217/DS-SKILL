@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ds-workspace coverage map",
+  "description": "First-class artifact tracking which pattern areas have been explored, what approaches were tried inside each, and which ceilings were hit. Queried by the exploration-loop 'pick' step. Updated at every VALIDATE exit.",
+  "type": "object",
+  "required": ["project", "updated_at", "pattern_areas"],
+  "properties": {
+    "project": { "type": "string" },
+    "updated_at": { "type": "string", "format": "date-time" },
+    "pattern_areas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "approaches_tried", "last_tried_vN", "exhausted", "remaining_leverage_estimate"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Pattern area identifier. Canonical values match ds-patterns/*.md filenames plus any project-specific areas."
+          },
+          "approaches_tried": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["approach", "vN", "outcome"],
+              "properties": {
+                "approach": { "type": "string", "description": "Short id, e.g. 'target-encoding-kfold', 'lgbm-default', 'stacking-2-level'" },
+                "vN": { "type": "integer", "minimum": 1 },
+                "outcome": {
+                  "enum": ["improved", "neutral", "regressed", "invalidated", "blocked"],
+                  "description": "Outcome vs. the run's reference baseline."
+                },
+                "lift": { "type": ["number", "null"], "description": "cv_mean delta vs. reference; null if blocked/invalidated." },
+                "brainstorm_ref": { "type": ["string", "null"], "description": "Path to brainstorm file where this approach was documented." },
+                "notes": { "type": ["string", "null"] }
+              }
+            }
+          },
+          "ceiling_reason": {
+            "enum": [null, "approach-exhausted", "feature-limited", "intrinsic", "budget-capped"],
+            "description": "Set only when exhausted=true. 'approach-exhausted' = this technique is tapped. 'feature-limited' = signal may not exist in current features. 'intrinsic' = DGP may not support better. 'budget-capped' = we stopped on budget, not on ceiling (re-evaluable).",
+            "default": null
+          },
+          "last_tried_vN": { "type": "integer", "minimum": 0 },
+          "exhausted": { "type": "boolean", "default": false },
+          "remaining_leverage_estimate": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Orchestrator's subjective estimate of remaining upside. Used by the 'pick' step to rank unexplored areas. Must be justified in notes_ref when >0.5 for an exhausted area."
+          },
+          "priority": {
+            "enum": ["top", "medium", "low"],
+            "default": "medium",
+            "description": "Set by FRAME from the data-contract / DGP. 'top' areas trigger warnings in consistency_lint if left unexplored at SHIP."
+          },
+          "notes_ref": { "type": ["string", "null"] }
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

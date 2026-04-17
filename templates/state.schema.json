@@ -42,7 +42,7 @@
         "required": ["v","event","ref","at"],
         "properties": {
           "v": { "type": "integer" },
-          "event": { "enum": ["leakage-found","assumption-disproven","metric-plateau","cv-holdout-drift","covariate-shift","suspicious-lift","submission-drift","novel-modeling-flag","novel-feature-flag"] },
+          "event": { "enum": ["leakage-found","assumption-disproven","metric-plateau","cv-holdout-drift","covariate-shift","suspicious-lift","submission-drift","eval-harness-tampered","novel-modeling-flag","novel-feature-flag","budget-exceeded","auto-pivot","auto-defeat","anti-goodhart-failure","override-activated","meta-audit-triggered","coverage-stale","council-quorum-failed"] },
           "ref": { "type": "string" },
           "at": { "type": "string", "format": "date-time" }
         }
@@ -64,6 +64,27 @@
       "enum": ["quiet", "normal", "verbose"],
       "default": "normal",
       "description": "Decision narration verbosity. Set via 'verbosity <level>' command."
+    },
+    "autonomous": {
+      "type": "boolean",
+      "default": false,
+      "description": "True when <project-root>/autonomous.yaml is present and the loop is running unattended (Iron Law #22/#24 autonomous substitutions in effect)."
+    },
+    "last_meta_audit_v": {
+      "type": ["integer", "null"],
+      "default": null,
+      "description": "Version at which the most recent Meta-Auditor run produced a verdict. Used to gate the N-version cadence declared in autonomous.yaml."
+    },
+    "plateau_streak": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 0,
+      "description": "Consecutive versions without stat-sig CV improvement. Drives auto-pivot (Iron Law #22) when it crosses plateau_threshold."
+    },
+    "pattern_area_plateaus": {
+      "type": "object",
+      "description": "Per-pattern-area plateau counters; area ids match coverage.json.pattern_areas[].id. Used by auto-defeat (exhaustion_threshold across all areas).",
+      "additionalProperties": { "type": "integer", "minimum": 0 }
     }
   },
   "additionalProperties": false

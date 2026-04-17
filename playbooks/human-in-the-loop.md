@@ -107,14 +107,14 @@ When user guidance conflicts with an iron law, a lesson, or a prior finding:
 
 ### Step-by-step
 
-1. **Infer scope from phrasing:**
+1. **Infer scope from phrasing** (maps to Iron Law #24 override scope):
 
-   | User phrasing | Inferred scope |
-   |---|---|
-   | "just try", "for now", "this once", "let's see" | `this-iteration` |
-   | "from now on", "always", "going forward", "in general" | `session` (until `guidance clear` or new `/ds`) |
-   | "update the rule", "change the law", "make this permanent" | `permanent` — ask for explicit confirmation before proceeding |
-   | Ambiguous | Default to `this-iteration`; state interpretation; ask "Is that right?" |
+   | User phrasing | Conversational scope | Override-card scope |
+   |---|---|---|
+   | "just try", "for now", "this once", "let's see" | this-iteration | `run` |
+   | "from now on", "always", "going forward", "in general" | session | `version` |
+   | "update the rule", "change the law", "make this permanent" | permanent — ask for explicit confirmation before proceeding | `permanent` |
+   | Ambiguous | Default to this-iteration; state interpretation; ask "Is that right?" | `run` |
 
 2. **Knowledge-lint first** — before treating as an override, run Protocol 1. If the
    prior knowledge does not actually apply, there is no conflict and no override needed.
@@ -134,9 +134,17 @@ When user guidance conflicts with an iron law, a lesson, or a prior finding:
    ```
    Also update the `## Current focus` header: `last_updated` and `active_overrides`.
 
-5. **If scope = `permanent`** — write `ds-workspace/overrides/vN-override-NNN.md`
-   using `templates/user-override.md`. Flag for review at the SHIP ceremony.
-   `this-iteration` and `session` overrides are logged in USER_GUIDANCE.md only.
+5. **Write the override-card artifact** (Iron Law #24) at
+   `ds-workspace/overrides/vN-override-<law-slug>.md` using
+   [templates/override-card.md](../templates/override-card.md). Required fields:
+   - `scope` from step 1's table (`run` | `version` | `permanent`).
+   - `signed_by: [user, ...]` (YAML list). Add `council` entries when Council quorum applies (autonomous mode, scope=`permanent`).
+   - `user_guidance_ref: G-NNN` — ties artifact to step 4's entry.
+   - `expires_at` — run end / vN rollover / `null` (permanent).
+   - `agent_pushback_given` + `agent_pushback_text` — recorded from step 3.
+   - **Core-law guard:** #1, #12, #16, #17, #20, `law=budget` require `user` in `signed_by` at any scope. Laws #16 and #20 reject `scope=permanent` outright (use `scope=run` + re-lock plan).
+
+   Append the override id to `state.active_overrides`. Scope=`permanent` is flagged for SHIP re-authorisation; run/version expire automatically.
 
 6. **Do not re-raise** — for the rest of this session, do not cite this specific
    concern again about this specific topic in the context of this user request.
@@ -147,6 +155,12 @@ When user guidance conflicts with an iron law, a lesson, or a prior finding:
 
 1. Read `ds-workspace/USER_GUIDANCE.md` — load `## Current focus` header (verbosity,
    active_overrides) and all `active` G-NNN entries.
+1a. **At FRAME entry and FEATURE_MODEL entry only:** Also read `ds-workspace/research-program.md`
+   — load active hypotheses (H-rp-NNN), feature candidates, model candidates, and excluded
+   approaches. Pass this as advisory context to Explorer subagent dispatch: Explorer *may*
+   address user-nominated items but is not required to explore every one. If
+   `research-program.md` does not exist (pre-feature workspace), create a stub from
+   `templates/research-program.md` and note the creation in the step-journal.
 2. Let active guidance anchor which prior knowledge to apply and which to deprioritize.
 3. For any non-trivial action → Protocol 2 (decision narration checkpoint).
 4. If a prior-knowledge conflict arises → Protocol 1 (knowledge-lint), then Protocol 3

@@ -44,13 +44,42 @@
             "items": { "type": "number" }
           },
           "lift_vs_baseline": { "type": "number" },
+          "feature_baseline": { "type": "boolean", "description": "true for the raw-feature reference run (Iron Law #19b)" },
+          "default_params": { "type": "boolean", "description": "true for the library-default-params reference run before any tuning" },
+          "tuning_run": { "type": "boolean", "description": "true for any hyperparameter-tuned run" },
+          "feature_lift_vs_feature_baseline": { "type": ["number","null"], "description": "cv_mean delta over the feature_baseline run; null if no feature baseline exists yet" },
+          "tuning_lift_vs_default": { "type": ["number","null"], "description": "cv_mean delta over the default_params run; null if no tuning was performed" },
           "status": { "enum": ["valid","superseded","invalidated"] },
           "invalidation_reason": { "type": ["string","null"] },
           "notes_ref": { "type": "string" },
           "baseline": { "type": "boolean" },
           "seed": { "type": "integer" },
           "data_sha256": { "type": "string" },
-          "env_lock_hash": { "type": "string" }
+          "env_lock_hash": { "type": "string" },
+          "secondary_metrics": {
+            "type": "object",
+            "description": "Values for every secondary metric declared in plans/v1.md.pre_registration.secondary_metrics (Iron Law #23). Keys match metric names; values are numeric measurements on this run. Required once secondary metrics are declared (v1 FRAME exit).",
+            "additionalProperties": { "type": ["number", "null"] }
+          },
+          "budget_spent": {
+            "type": "object",
+            "description": "Resources consumed by this run against budget.json envelopes (Iron Law #21). Keys are envelope dimension names (compute_hours, wall_clock_days, api_cost_usd). Optional — orchestrator logs what it can measure.",
+            "additionalProperties": { "type": ["number", "null"] }
+          },
+          "pattern_area": {
+            "type": ["string", "null"],
+            "description": "coverage.json.pattern_areas[].id this run addresses. Used by Iron Law #25 exhaustion accounting and auto-pivot pattern-selection."
+          },
+          "approach_id": {
+            "type": ["string", "null"],
+            "description": "coverage.json.pattern_areas[].approaches_tried[].id referenced by this run — ties the run to an explicit brainstormed approach."
+          },
+          "override_ids": {
+            "type": "array",
+            "items": { "type": "string" },
+            "default": [],
+            "description": "Override artifact ids (Iron Law #24) that authorized this run if any gate was relaxed (e.g., eval-harness-tampered override)."
+          }
         }
       }
     },

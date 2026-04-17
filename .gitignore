@@ -4,3 +4,4 @@ __pycache__/
 tests/dashboard/node_modules/
 tests/dashboard/coverage/
 docs/
+.DS_Store

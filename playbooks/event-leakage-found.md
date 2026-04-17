@@ -16,3 +16,9 @@ Any hit in `checklists/leakage-audit.md` grep sweep over `ds-workspace/src/` or 
 
 ## Resolution criteria
 Leakage grep clean (no hits on repaired code) AND re-baseline present AND Validation Auditor signs new `audits/v(N+1)-leakage.md` with Verdict=PASS.
+
+## Resume phase
+After resolution, set `state.current_phase = "AUDIT"` in v(N+1) and re-enter the
+AUDIT entry gate. Do NOT resume at the phase where the leak was found — the
+remediation hypothesis is v(N+1) scope, and the AUDIT phase must re-sign the
+updated leakage and adversarial artifacts before DATA_PREP can proceed.

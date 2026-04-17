@@ -1,9 +1,19 @@
 const DATA_URL = "data/leaderboard.json";
+const CONSISTENCY_URL = "data/consistency.json";
+const LESSONS_URL = "data/lessons.json";
 
 export async function fetchData(url = DATA_URL) {
   const r = await fetch(url);
   if (!r.ok) throw new Error(`fetch ${url}: ${r.status}`);
   return r.json();
+}
+
+async function fetchOptional(url) {
+  try {
+    const r = await fetch(url);
+    if (!r.ok) return null;
+    return await r.json();
+  } catch (_) { return null; }
 }
 
 function bestRun(runs, direction) {
@@ -62,12 +72,52 @@ function renderAudits(d) {
          <small>${e.at.slice(0,16).replace("T"," ")}</small></li>`).join("");
 }
 
-export async function renderAll(data) {
+function renderConsistency(report) {
+  const badge = document.getElementById("consistency-verdict");
+  const ul = document.getElementById("consistency-issues");
+  if (!badge || !ul) return;
+  if (!report) {
+    badge.textContent = "n/a";
+    badge.className = "badge neutral";
+    ul.innerHTML = "<li class='hint'>run <code>scripts/consistency_lint.py ds-workspace --json &gt; dashboard/data/consistency.json</code> to populate.</li>";
+    return;
+  }
+  const issues = report.issues || [];
+  const errs = issues.filter(i => i.severity === "error");
+  const warns = issues.filter(i => i.severity === "warning");
+  badge.textContent = errs.length ? `FAIL (${errs.length}E ${warns.length}W)` : warns.length ? `WARN (${warns.length}W)` : "PASS";
+  badge.className = errs.length ? "badge critical" : warns.length ? "badge warn" : "badge pass";
+  ul.innerHTML = issues.map(i =>
+    `<li class="issue ${i.severity}"><span class="chip ${i.severity}">${i.severity}</span>
+       <code>${i.code}</code> ${escapeHtml(i.message)}
+       ${i.file ? `<small>${escapeHtml(i.file)}</small>` : ""}</li>`).join("");
+}
+
+function renderLessons(lessons) {
+  const ul = document.getElementById("lessons-list");
+  if (!ul) return;
+  if (!lessons || !lessons.entries) {
+    ul.innerHTML = "<li class='hint'>no lessons.json yet — generate from lessons.md on MERGE/SHIP.</li>";
+    return;
+  }
+  ul.innerHTML = lessons.entries.map(l => `
+    <li><h3>${escapeHtml(l.slug || l.id)}</h3>
+        <p>${escapeHtml(l.claim || "")}</p>
+        <p><small>${escapeHtml(l.source || "")} · ${l.superseded_by ? `superseded by ${l.superseded_by}` : "live"}</small></p></li>`).join("");
+}
+
+function escapeHtml(s) {
+  return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+}
+
+export async function renderAll(data, extras = {}) {
   renderHero(data);
   renderTimeline(data);
   renderBoard(data);
   renderDisproven(data);
   renderAudits(data);
+  renderConsistency(extras.consistency);
+  renderLessons(extras.lessons);
   try {
     const { renderMetricChart } = await import("./charts.js");
     renderMetricChart(data);
@@ -75,7 +125,14 @@ export async function renderAll(data) {
 }
 
 async function tick() {
-  try { renderAll(await fetchData()); } catch (e) { console.error(e); }
+  try {
+    const [data, consistency, lessons] = await Promise.all([
+      fetchData(),
+      fetchOptional(CONSISTENCY_URL),
+      fetchOptional(LESSONS_URL),
+    ]);
+    renderAll(data, { consistency, lessons });
+  } catch (e) { console.error(e); }
 }
 
 if (typeof window !== "undefined" && !window.__DS_TEST__) {

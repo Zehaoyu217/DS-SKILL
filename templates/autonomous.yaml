@@ -1,0 +1,83 @@
+# autonomous.yaml — optional file that switches the orchestrator into autonomous mode
+#
+# Place at: <project-root>/autonomous.yaml  (NOT inside ds-workspace/, so it survives reset)
+#
+# When present, /ds reads this file at FRAME entry instead of asking the five framing
+# questions interactively. Iron Law #22 (auto-pivot / auto-defeat) and the autonomous-
+# mode layer at the bottom of iron-laws.md become active.
+#
+# Autonomous mode does NOT relax any iron law — it only substitutes mechanical or
+# council-based actors for human-gated steps. Every substitution below is audited at ship.
+
+version: 1
+mode: daily  # competition | daily. competition enables one-shot external submission discipline.
+
+# --- Framing (replaces the five questions at FRAME) ---
+framing:
+  decision_supported: "<what decision will this model support? 1-2 sentences>"
+  grain_and_time: "<data unit/grain + time structure>"
+  success_threshold:
+    metric: "<primary metric name, e.g. roc_auc>"
+    direction: max  # max | min
+    target: 0.85    # hard threshold for auto-ship
+  track: notebook   # notebook | script
+
+# --- Anti-Goodhart secondary metrics (Iron Law #23) ---
+# At least 2 required. Add project-specific metrics beyond the suggested list.
+secondary_metrics:
+  - name: calibration_ece
+    direction: min
+    max_degradation_sigma: 2.0
+  - name: worst_segment_score
+    direction: max
+    max_degradation_sigma: 2.0
+
+# --- Budget envelope (Iron Law #21) ---
+budget:
+  compute_hours: 20
+  wall_clock_days: 7
+  api_cost_usd: 50
+  max_versions: 30
+  max_runs_per_version: 20
+
+# --- Auto-pivot / auto-defeat rules (Iron Law #22) ---
+autonomy:
+  plateau_threshold: 3             # consecutive vN with no stat-sig improvement → auto-pivot
+  exhaustion_threshold: 6          # total plateaus across all pattern areas → auto-defeat
+  pivot_priority_order:            # order in which unexplored pattern areas are picked
+    - data-quality
+    - feature-engineering
+    - model-selection
+    - ensemble
+    - ml-classification
+    - idea-research
+  auto_ship_when_target_met: true  # ship immediately when success_threshold.target is hit AND gates pass
+  require_meta_audit_every_n_versions: 10  # dispatch meta-auditor every N versions
+
+# --- Persona substitutions (Iron Law #24 declares these as permanent overrides) ---
+# Autonomous mode cannot run without these substitutions documented.
+persona_substitutions:
+  domain_expert:
+    replaced_by: literature_scout_full + meta_auditor_signoff
+    reason: "No human domain expert available in autonomous mode; literature + meta-audit substitutes with reduced confidence."
+  ship_authorization:
+    replaced_by: council_quorum_2_of_3_skeptics + meta_auditor_signoff
+    reason: "Autonomous ship requires Council quorum plus Meta-Auditor rather than human 'ship' command."
+  override_authorization:
+    replaced_by: council_quorum_2_of_3_skeptics
+    reason: "Non-permanent-scope overrides auto-authorize if Council agrees; permanent-scope overrides of Iron Laws #1, #12, #16, #17, #20 remain human-gated. Iron Laws #16 (one-shot submission) and #20 (eval-harness) REJECT scope=permanent outright — scope=run only, with a re-lock plan. Law ids may be written as slug (e.g. `eval-harness`, `dgp`) or number (`20`, `12`); consistency_lint canonicalizes both."
+
+# --- Human-in-the-loop escape hatches ---
+# Events that force back to interactive mode even when autonomous.yaml is present.
+escalate_to_human:
+  - permanent_override_of_core_law              # #1, #12, #16, #17, #20 or law=budget; #16/#20 also reject scope=permanent outright
+  - external_submission_in_autonomous_mode      # #16 — auto-ship ceremony stops before external push
+  - budget_exhausted_before_ship
+  - surrender_card_emitted
+  - meta_auditor_critical_finding
+  - council_failed_to_reach_quorum_twice
+
+# --- Optional logging ---
+logging:
+  dashboard_snapshot_every_n_versions: 5
+  meta_audit_artifact_dir: audits/meta/
