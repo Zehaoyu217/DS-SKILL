@@ -710,6 +710,29 @@ def check_explorer_count(root: Path, report: Report) -> None:
                 )
 
 
+def _is_competition_mode(root: Path) -> bool:
+    """Detect competition mode via state.json or plans/v1.md pre-registration.
+
+    Defaults to False (daily mode) when neither signal is present. Competition
+    mode is the stricter setting — Iron Law #26 blocks at VALIDATE exit in
+    competition, warns in daily.
+    """
+    state = _load_state(root)
+    if state:
+        mode = state.get("mode") or state.get("project_mode")
+        if isinstance(mode, str) and mode.lower() == "competition":
+            return True
+    plan_v1 = root / "plans" / "v1.md"
+    if plan_v1.exists():
+        frontmatter = load_frontmatter(plan_v1) or {}
+        pre_reg = frontmatter.get("pre_registration") or {}
+        if isinstance(pre_reg, dict):
+            mode = pre_reg.get("mode") or pre_reg.get("project_mode")
+            if isinstance(mode, str) and mode.lower() == "competition":
+                return True
+    return False
+
+
 def _load_state(root: Path) -> dict[str, Any] | None:
     state_path = root / "state.json"
     if not state_path.exists():
@@ -1313,6 +1336,72 @@ def check_surrender_card(root: Path, plans: dict[int, dict[str, Any]], report: R
             )
 
 
+def check_model_synthesis_present(root: Path, report: Report) -> None:
+    """Iron Law #26: synthesis must exist at VALIDATE exit.
+
+    For every version that has produced a model-diagnostics audit (Iron Law
+    #18), require a corresponding model-synthesis audit with a non-empty §6
+    (Implications). In competition mode, missing synthesis or empty §6 is
+    an error; in daily mode, it is a warning.
+    """
+    diagnostics = sorted(root.glob("audits/v*-model-diagnostics.md"))
+    if not diagnostics:
+        return
+    competition = _is_competition_mode(root)
+    raise_fn = report.error if competition else report.warn
+    for diag in diagnostics:
+        version_match = re.search(r"v(\d+)-model-diagnostics", diag.name)
+        if not version_match:
+            continue
+        version = version_match.group(1)
+        synthesis = root / "audits" / f"v{version}-model-synthesis.md"
+        if not synthesis.exists():
+            raise_fn(
+                "model-as-teacher.missing",
+                f"v{version}: diagnostics present but no synthesis "
+                f"(audits/v{version}-model-synthesis.md). "
+                f"Iron Law #26 required at VALIDATE exit.",
+                file=f"audits/v{version}-model-synthesis.md",
+            )
+            continue
+        try:
+            text = synthesis.read_text()
+        except OSError as exc:
+            report.error(
+                "model-as-teacher.unreadable",
+                f"cannot read {synthesis.name}: {exc}",
+                file=synthesis.name,
+            )
+            continue
+        implications_match = re.search(
+            r"(?:^|\n)## 6\. Implications(.*?)(?=\n## |\Z)",
+            text,
+            re.DOTALL,
+        )
+        if not implications_match:
+            raise_fn(
+                "model-as-teacher.no-implications-section",
+                f"v{version} synthesis missing §6 Implications section.",
+                file=synthesis.name,
+            )
+            continue
+        body = implications_match.group(1)
+        bullets = [
+            ln for ln in body.splitlines()
+            if ln.strip().startswith("- ")
+            and not ln.strip().startswith("- <")
+            and "—" in ln
+        ]
+        if not bullets:
+            raise_fn(
+                "model-as-teacher.empty-implications",
+                f"v{version} synthesis §6 has no concrete implication "
+                f"bullets. Single-metric trap — name a variable, hypothesis, "
+                f"basis row, insight, or segment.",
+                file=synthesis.name,
+            )
+
+
 def run(root: Path) -> Report:
     report = Report()
     if not root.exists():
@@ -1369,6 +1458,9 @@ def run(root: Path) -> Report:
     check_surrender_card(root, plans, report)
     check_meta_audit_monotonic(root, report)
     check_holdout_reads_integrity(root, report)
+
+    # Iron Law #26 — model-as-teacher synthesis at VALIDATE exit
+    check_model_synthesis_present(root, report)
 
     return report
 

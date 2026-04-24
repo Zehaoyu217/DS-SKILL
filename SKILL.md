@@ -51,6 +51,16 @@ Before doing anything else, check `ds-workspace/state.json`:
 Between sessions, `state.json` is authoritative. If the orchestrator's
 in-memory model diverges from disk, trust disk.
 
+Alongside `state.json` and `coverage.json`, a third first-class artifact
+is `knowledge-base.md` — the single curated view of what is known about
+the dataset (profile, variable catalog, DGP hypotheses, feature-basis
+history, model-derived insights, segment analysis, failure-mode catalog,
+open questions). It is maintained under a single-writer rule (only the
+orchestrator edits it) and linted by `scripts/knowledge_lint.py`
+(warnings-only). Research Lead and model-synthesis audits propose
+patches via `/ds-kb apply-patches <audit-file>`. See
+[templates/knowledge-base.md](templates/knowledge-base.md).
+
 ---
 
 ## The Exploration Loop
@@ -155,11 +165,15 @@ evidence arrives.
 
 | Sub-skill | Pull up when... |
 |-----------|----------------|
+| [dataset-understanding.md](ds-patterns/dataset-understanding.md) | Knowledge base has unexplored columns, `data-contract.md` is thin, or the project has drifted into modeling without a curated view of the data itself |
 | [data-quality.md](ds-patterns/data-quality.md) | Baseline is low, train/test gap is unexplained, or raw column distributions have not been audited |
 | [feature-engineering.md](ds-patterns/feature-engineering.md) | Domain knowledge to exploit, high-cardinality categoricals, or a large feature set to prune |
+| [feature-basis-rotation.md](ds-patterns/feature-basis-rotation.md) | Feature basis has not changed in ≥5 versions, SHAP top-20 is stable, or `ds-stale-basis-check.sh` is firing |
 | [model-selection.md](ds-patterns/model-selection.md) | Overfit delta elevated, choosing between model families, or considering class weighting |
+| [model-as-teacher.md](ds-patterns/model-as-teacher.md) | At VALIDATE exit (Iron Law #26 synthesis), when diagnostics have been produced but no persistent learning extracted, or to fill `audits/vN-model-synthesis.md` |
 | [ensemble.md](ds-patterns/ensemble.md) | Single-model ceiling reached, want to blend, or blend OOF has plateaued |
 | [ml-classification.md](ds-patterns/ml-classification.md) | Binary/multi-class target, imbalanced classes, or segment-level performance differs |
+| [curiosity-discipline.md](ds-patterns/curiosity-discipline.md) | Direction fatigue detected, primary metric moved <0.001 for several versions, same pattern area monopolising attempts |
 | [idea-research.md](ds-patterns/idea-research.md) | Stuck and don't know what to try next, want prior work, or need to generate hypotheses from scratch |
 
 ---
@@ -205,10 +219,18 @@ scope=run with a re-lock plan).
 ## Persona dispatch via subagents
 
 Every persona — Skeptic, Validation Auditor, Statistician, Engineer, Domain
-Expert, Explorer, Literature Scout, Meta-Auditor — runs as an **independent
-Claude Code subagent** via the `Task` / `Agent` tool. The persona must NOT
-share context with the orchestrator's chain-of-thought. It sees only its
-persona brief + the specific artifacts it is instructed to read.
+Expert, Explorer, Literature Scout, Meta-Auditor, Research Lead — runs as an
+**independent Claude Code subagent** via the `Task` / `Agent` tool. The persona
+must NOT share context with the orchestrator's chain-of-thought. It sees only
+its persona brief + the specific artifacts it is instructed to read.
+
+Research Lead is the non-adversarial coaching voice (advisory, never blocks;
+see [personas/research-lead.md](personas/research-lead.md)). It stewards
+[knowledge-base.md](templates/knowledge-base.md) and proposes cross-version
+direction when the rest of the loop is stuck on one model family or one
+feature basis. Dispatched at FINDINGS exit, after `direction_fatigue_threshold`
+is hit in `coverage.json`, or on-demand via `/ds-coach`. See also Iron Law #26
+and [ds-patterns/curiosity-discipline.md](ds-patterns/curiosity-discipline.md).
 
 Inline "speaking as the Skeptic…" does not satisfy the iron laws. The
 signature is the filesystem write of the persona's audit file; anything less
@@ -221,7 +243,7 @@ has a self-contained context window. Do not paste the orchestrator's
 chain-of-thought.
 
 ```
-Role: <persona-slug>  # e.g. skeptic | validation-auditor | statistician | engineer | domain-expert | explorer | literature-scout | meta-auditor
+Role: <persona-slug>  # e.g. skeptic | validation-auditor | statistician | engineer | domain-expert | explorer | literature-scout | meta-auditor | research-lead
 Version: v<N>
 Phase: <FRAME|DGP|AUDIT|DATA_PREP|EDA|FEATURE_MODEL|VALIDATE|FINDINGS|MERGE|SHIP>
 Read (mandatory, in order):

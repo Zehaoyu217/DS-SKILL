@@ -29,6 +29,8 @@ Statistical validation of the modeled run. Verify that metrics are reported with
     ```
     Commit sha is recorded in `audits/vN-repro.md` for reproducibility cross-reference (Engineer step). Skip if project is not a git repo.
 
+8. **Model-as-Teacher synthesis** (Iron Law #26). The orchestrator writes `audits/vN-model-synthesis.md` using [templates/model-synthesis.md](../templates/model-synthesis.md) and verifies every box in [checklists/model-as-teacher.md](../checklists/model-as-teacher.md). The synthesis reads `audits/vN-model-diagnostics.md`, `runs/vN/metrics.json`, and `knowledge-base.md`, and distills *deltas, shape-changes, and implications* — it does not duplicate the raw diagnostics. Empty §6 (Implications) or generic §6 bullets fail the gate in competition mode (warn in daily). Skeptic micro-review is required in competition mode when §6 updates a DGP hypothesis. After synthesis exits the gate, the orchestrator applies any §7 proposed KB patches via `/ds-kb apply-patches audits/vN-model-synthesis.md` and updates `coverage.json.pattern_areas[].approaches_tried` + `remaining_leverage_estimate` in line with the synthesis's implications.
+
 ## Persona invocations
 - **Statistician** (primary): Verify uncertainty presence, run assumption tests, run multi-seed stability check, compute expanded gap threshold. Output: `audits/vN-assumptions.md` with Verdict [PASS | BLOCK] and gap interval logged in `audits/vN-ship-gate.md`.
 - **Validation Auditor** (parallel, final leakage + encoding sweep): Output updated `audits/vN-leakage.md` and `audits/vN-encoding.md`.
@@ -41,6 +43,8 @@ All of the following must hold (ALL AND):
 - `plans/v{N}-updates.md` has `status: closed` and a "Summary at close" block
 - `runs/v{N}/learnings.md` has a VALIDATE exit entry appended
 - `runs/v{N}/learnings.md` frontmatter `status: closed` and "Summary at close" block written (primary input for DGP §6 in v(N+1))
+- `audits/vN-model-synthesis.md` exists and passes `checklists/model-as-teacher.md` (Iron Law #26 — blocking in competition mode, warning in daily mode)
+- Proposed KB patches from the synthesis's §7 have been applied (or explicitly deferred with reason) and `coverage.json` updated to reflect the version's approaches and leverage estimates
 
 ## Events that can abort this phase
 - `leakage-found` (re-grep catches a new pattern; mark run invalidated and open v(N+1))

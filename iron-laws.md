@@ -131,6 +131,23 @@ Applies in both modes. This is how "exceptions prove the rule" becomes filesyste
 
 This replaces the implicit "brainstorm every phase every version" cadence with an explicit novelty gate. The filesystem artifact is `coverage.json`; the brainstorm file is the proof that novelty was addressed.
 
+## #26 Model-as-Teacher: synthesis at VALIDATE exit
+
+**Mechanism:** After Iron Law #18 produces raw model diagnostics, the orchestrator writes `ds-workspace/audits/vN-model-synthesis.md` using [templates/model-synthesis.md](templates/model-synthesis.md). The file fills seven sections: metric delta table, SHAP/importance delta, PDP observations, segment weakness scan, model disagreement signals, implications (targeting `knowledge-base.md` §2/3/4/5/6), and proposed KB patches. [checklists/model-as-teacher.md](checklists/model-as-teacher.md) is the gate checklist; `consistency_lint.py` refuses VALIDATE exit in competition mode unless the file exists and all "mandatory sections" boxes are signed.
+
+**Modes:** In **competition mode** the synthesis is blocking at VALIDATE exit. In **daily mode** it is warning-only — missing or low-quality synthesis is flagged on the dashboard but does not prevent the FINDINGS transition. This asymmetry matches the declared tolerance: competition runs accumulate hundreds of versions and benefit most from forced synthesis; daily mode prioritises iteration speed.
+
+**Single-metric trap defense:** §6 (Implications) must name at least one concrete target (variable, hypothesis, basis, insight, or segment) in the knowledge base. Empty §6 fails the checklist. A "nothing new learned" run requires a positive explanation (e.g. "re-ran v{N-1} champion on 2 new seeds to confirm stability"), not silence. This is the direct anti-laziness hook — a run that only improved the primary metric without any persistent learning is flagged for plateau-counter scrutiny.
+
+**Single-writer rule for the KB:** the synthesis does NOT edit `knowledge-base.md` directly. §7 records proposed patches; the orchestrator applies them via `/ds-kb apply-patches audits/vN-model-synthesis.md` after VALIDATE exit. The Research Lead consumes the synthesis at FINDINGS exit and may propose additional cross-version patches.
+
+**Relationship to other laws:**
+- Inputs: `audits/vN-model-diagnostics.md` (#18), `runs/vN/metrics.json`, `knowledge-base.md`, `coverage.json`.
+- Outputs feed: `knowledge-base.md` (via §7 patches) and `audits/vN-research-lead.md` (Research Lead reads the synthesis at FINDINGS exit).
+- Coverage update (#25): the orchestrator updates `coverage.json.pattern_areas[].approaches_tried` at VALIDATE exit, informed by the synthesis's §6 implications and `remaining_leverage_estimate` adjustment.
+
+Applies in both modes with the blocking/warning split above.
+
 ---
 
 ## Enforcement pattern (common to all rules)

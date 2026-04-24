@@ -86,6 +86,16 @@ REQUIRED = [
     "scripts/init_workspace.py",
     "scripts/hooks/ds-state-surface.sh",
     "scripts/hooks/ds-phase-check.sh",
+    "scripts/hooks/ds-post-run-synthesis.sh",
+    "scripts/hooks/ds-stale-basis-check.sh",
+    "scripts/hooks/ds-session-digest.sh",
+    "scripts/hooks/README.md",
+    "scripts/knowledge_lint.py",
+    "templates/knowledge-base.md",
+    "templates/model-synthesis.md",
+    "personas/research-lead.md",
+    "checklists/model-as-teacher.md",
+    "slash/ds-kb.md",
     "README.md",
     # ds-patterns sub-skills
     "ds-patterns/data-quality.md",
@@ -94,6 +104,11 @@ REQUIRED = [
     "ds-patterns/ensemble.md",
     "ds-patterns/ml-classification.md",
     "ds-patterns/idea-research.md",
+    # ds-patterns additions — knowledge-base and curiosity discipline
+    "ds-patterns/dataset-understanding.md",
+    "ds-patterns/model-as-teacher.md",
+    "ds-patterns/feature-basis-rotation.md",
+    "ds-patterns/curiosity-discipline.md",
 ]
 
 FRONTMATTER = re.compile(r"^---\n(.*?)\n---", re.DOTALL)

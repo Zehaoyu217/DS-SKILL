@@ -74,6 +74,14 @@
             "type": ["string", "null"],
             "description": "coverage.json.pattern_areas[].approaches_tried[].id referenced by this run — ties the run to an explicit brainstormed approach."
           },
+          "feature_basis_id": {
+            "type": ["string", "null"],
+            "description": "knowledge-base.md §4 basis id (e.g. 'fb-v3'). Used by scripts/hooks/ds-stale-basis-check.sh to detect same-basis stalls. Runs without a basis_id cannot be judged by the stale-basis hook."
+          },
+          "model_family": {
+            "type": ["string", "null"],
+            "description": "High-level model family identifier (e.g. 'CB', 'LGBM', 'XGB', 'FT', 'Bayes', 'MLP'). Used by scripts/hooks/ds-stale-basis-check.sh and by coverage.json pattern-area accounting. Distinct from 'model' which is the specific run variant."
+          },
           "override_ids": {
             "type": "array",
             "items": { "type": "string" },

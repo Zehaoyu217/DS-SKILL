@@ -7,6 +7,23 @@
   "properties": {
     "project": { "type": "string" },
     "updated_at": { "type": "string", "format": "date-time" },
+    "schema_version": {
+      "type": "integer",
+      "default": 2,
+      "description": "Schema version. v2 introduced direction_fatigue_counter per pattern_area (ds-patterns/curiosity-discipline.md)."
+    },
+    "direction_fatigue_threshold": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 4,
+      "description": "Workspace-level default for the per-area fatigue counter. When any pattern_area's direction_fatigue_counter reaches this value, the orchestrator MUST dispatch the Research Lead before opening the next version."
+    },
+    "direction_fatigue_lift_threshold": {
+      "type": "number",
+      "minimum": 0,
+      "default": 0.001,
+      "description": "Absolute lift below which an attempt is counted toward direction_fatigue_counter. Unit is the primary metric."
+    },
     "pattern_areas": {
       "type": "array",
       "items": {
@@ -52,6 +69,12 @@
             "enum": ["top", "medium", "low"],
             "default": "medium",
             "description": "Set by FRAME from the data-contract / DGP. 'top' areas trigger warnings in consistency_lint if left unexplored at SHIP."
+          },
+          "direction_fatigue_counter": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 0,
+            "description": "Schema v2. Number of consecutive attempts in this area with |lift| < direction_fatigue_lift_threshold. Reset on material lift, on a confirmed disproven-card for the area family, or when the orchestrator records a Research Lead dispatch. When this reaches direction_fatigue_threshold, the loop must pivot or dispatch coaching before continuing."
           },
           "notes_ref": { "type": ["string", "null"] }
         }
